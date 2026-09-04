@@ -1,0 +1,17 @@
+{
+  "name": "Folha Norte",
+  "short_name": "Folha Norte",
+  "description": "Define onde estás e onde queres chegar a um ano. Revê uma vez por mês — nem antes, nem depois.",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "orientation": "portrait",
+  "theme_color": "#10151C",
+  "background_color": "#F5F2EA",
+  "lang": "pt-PT",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

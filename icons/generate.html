@@ -1,0 +1,22 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Gerar ícones — Folha Norte</title>
+<body style="font-family:system-ui;background:#10151C;color:#F5F2EA;padding:24px">
+<p>Abre esta página uma vez num browser. Descarrega os dois PNG e coloca-os em <code>icons/</code>.</p>
+<p><button onclick="dl(192)">icon-192.png</button> <button onclick="dl(512)">icon-512.png</button></p>
+<canvas id="c" width="512" height="512" style="width:180px;border:1px solid #A9884F"></canvas>
+<script>
+function draw(s){
+  const c=document.getElementById('c'),x=c.getContext('2d');
+  c.width=c.height=s; x.fillStyle='#10151C'; x.fillRect(0,0,s,s);
+  x.strokeStyle='#A9884F'; x.lineWidth=s*0.02;
+  x.beginPath(); x.arc(s/2,s/2,s*0.4,0,7); x.stroke();
+  const cx=s/2,cy=s/2,w=s*0.11,h=s*0.34;
+  x.fillStyle='#C8402E'; x.beginPath();
+  x.moveTo(cx,cy-h); x.lineTo(cx+w,cy); x.lineTo(cx,cy+h*0.16); x.lineTo(cx-w,cy); x.closePath(); x.fill();
+  x.fillStyle='rgba(245,242,234,.45)'; x.beginPath();
+  x.moveTo(cx,cy+h); x.lineTo(cx-w,cy); x.lineTo(cx,cy-h*0.16); x.lineTo(cx+w,cy); x.closePath(); x.fill();
+}
+function dl(s){ draw(s); const a=document.createElement('a'); a.download='icon-'+s+'.png'; a.href=document.getElementById('c').toDataURL(); a.click(); draw(512); }
+draw(512);
+</script>
