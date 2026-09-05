@@ -4,10 +4,12 @@ window.I18N = {
   pt: {
     _label: "Português (Portugal)",
     skip: "Saltar para a folha",
-    eyebrow: "Direção pessoal · revisão mensal",
+    eyebrow: "Direção anual · foco semanal",
     title: "Folha Norte",
-    lede: "Define onde estás e onde queres chegar a um ano. Depois fecha a folha e segue o rumo — só se muda no dia de revisão.",
+    lede: "A Folha Norte traça o teu rumo a longo prazo. A Folha Projeto foca a tua semana. Cada uma revê-se no seu próprio tempo — nem antes, nem depois.",
     langLabel: "Idioma",
+    tabNorte: "Folha Norte",
+    tabProjeto: "Folha Projeto",
 
     emptyKicker: "Nada traçado ainda",
     emptyTitle: "Começa a tua Folha Norte",
@@ -83,16 +85,47 @@ window.I18N = {
     lockOpenEmergency: "Folha aberta por desbloqueio de emergência. Guarda as alterações necessárias.",
     lockClosed: "Folha fechada. Próxima revisão: dia {day} ({days} dias).",
     lockClosedTomorrow: "Folha fechada. A próxima revisão é amanhã.",
-    dayNames: ["domingo","segunda","terça","quarta","quinta","sexta","sábado"]
+    dayNames: ["domingo","segunda","terça","quarta","quinta","sexta","sábado"],
+
+    projKicker: "Semana de {start} a {end}",
+    projSuggestion: "Sugestão: faz a coleta à segunda de manhã.",
+    projTopicsTitle: "Assuntos da semana",
+    projTopicsBody: "Os temas que vão centralizar a tua atenção nos próximos dias.",
+    projTopicDescPh: "Em que te vais focar?",
+    projTopicRemove: "Remover",
+
+    projInfoTitle: "Informações da semana",
+    projInfoBodyPending: "Ainda não fizeste a coleta desta semana. Reúne agora tudo o que vais consumir — depois disto, novas referências só entram na próxima coleta.",
+    projInfoBodyDone: "Coleta feita em {date}. Novas referências só podem entrar na próxima coleta — guarda-as em baixo.",
+    projCollectBtn: "Fazer a coleta agora",
+    projInfoDone: "consumida",
+    projInfoEmpty: "Nada recolhido ainda.",
+
+    dlgCollectTitle: "Coleta da semana",
+    dlgCollectBody: "Uma linha por referência. É a única vez esta semana que juntas informação de raiz — inclui também o que guardaste da semana passada, se ainda for relevante.",
+    dlgCollectPh: "Uma referência por linha…",
+    dlgCollectPendingLabel: "Referências guardadas da semana passada",
+    dlgCollectOk: "Registar coleta",
+
+    projQueueTitle: "Guardar para a próxima coleta",
+    projQueueBody: "Surgiu uma referência nova a meio da semana? Fica aqui em espera — só entra na próxima coleta.",
+    projQueuePh: "Referência para mais tarde…",
+    projQueueAddBtn: "Guardar",
+    projQueueEmpty: "Nada em espera.",
+
+    projHistCreated: "Semana iniciada",
+    projHistCollected: "Coleta realizada"
   },
 
   en: {
     _label: "English",
     skip: "Skip to the sheet",
-    eyebrow: "Personal direction · monthly review",
+    eyebrow: "Yearly direction · weekly focus",
     title: "Folha Norte",
-    lede: "Set where you are and where you want to be in a year. Then close the sheet and hold the course — you only change it on review day.",
+    lede: "Folha Norte charts your long-term course. Folha Projeto focuses your week. Each one is reviewed on its own schedule — no earlier, no later.",
     langLabel: "Language",
+    tabNorte: "Folha Norte",
+    tabProjeto: "Folha Projeto",
 
     emptyKicker: "Nothing charted yet",
     emptyTitle: "Start your Folha Norte",
@@ -168,6 +201,35 @@ window.I18N = {
     lockOpenEmergency: "Sheet opened by emergency unlock. Save the changes you need.",
     lockClosed: "Sheet closed. Next review: day {day} ({days} days).",
     lockClosedTomorrow: "Sheet closed. The next review is tomorrow.",
-    dayNames: ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"]
+    dayNames: ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"],
+
+    projKicker: "Week of {start} to {end}",
+    projSuggestion: "Suggested: collect on Monday morning.",
+    projTopicsTitle: "This week's topics",
+    projTopicsBody: "The themes that will hold your attention over the coming days.",
+    projTopicDescPh: "What will you focus on?",
+    projTopicRemove: "Remove",
+
+    projInfoTitle: "This week's information",
+    projInfoBodyPending: "You haven't collected this week yet. Gather now everything you'll consume — after this, new references only enter on the next collection.",
+    projInfoBodyDone: "Collected on {date}. New references can only enter on the next collection — save them below.",
+    projCollectBtn: "Collect now",
+    projInfoDone: "consumed",
+    projInfoEmpty: "Nothing collected yet.",
+
+    dlgCollectTitle: "This week's collection",
+    dlgCollectBody: "One reference per line. This is the only time this week you gather information from scratch — include what you saved last week too, if it's still relevant.",
+    dlgCollectPh: "One reference per line…",
+    dlgCollectPendingLabel: "References saved from last week",
+    dlgCollectOk: "Record collection",
+
+    projQueueTitle: "Save for the next collection",
+    projQueueBody: "A new reference showed up mid-week? It waits here — it only enters on the next collection.",
+    projQueuePh: "Reference for later…",
+    projQueueAddBtn: "Save",
+    projQueueEmpty: "Nothing waiting.",
+
+    projHistCreated: "Week started",
+    projHistCollected: "Collection done"
   }
 };

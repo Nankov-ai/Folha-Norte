@@ -1,11 +1,13 @@
 # Folha Norte
 
-Uma folha para definir a tua direção a um ano e revê-la **uma vez por mês — nem antes, nem depois**.
+Duas folhas do mesmo método: **Folha Norte** define o rumo a longo prazo e revê-se
+uma vez por mês; **Folha Projeto** foca a semana corrente e recolhe informação
+uma vez por semana. Nos dois casos: **nem antes, nem depois**.
 
 App estática (HTML/CSS/JS, sem build), instalável como PWA. Os dados ficam só no teu
 dispositivo (`localStorage`). Publicável de graça no GitHub Pages.
 
-## O método
+## Folha Norte
 
 1. **Onde estou agora** e **onde quero chegar** (a projeção). O horizonte é à tua
    escolha — dias, semanas, meses ou anos — e a app mostra a data-alvo.
@@ -14,12 +16,18 @@ dispositivo (`localStorage`). Publicável de graça no GitHub Pages.
 4. **Revisão mensal** num dia fixo (sugestão: dia 22). Fora desse dia a folha está
    fechada — é a *blindagem* contra a procrastinação e a fuga.
 
-A app acrescenta ao método:
-- **Desbloqueio de emergência** — para um facto novo real (não "mudei de ideias"),
-  com justificação obrigatória que fica no histórico.
-- **Histórico** de traçado, revisões, reflexões e desbloqueios.
-- **Exportar / importar** a folha em ficheiro (backup e portabilidade).
-- **Imprimir** — gera a folha A4 fiel ao método (que pede papel).
+Extras: desbloqueio de emergência (facto novo real, com justificação, fica no
+histórico), histórico completo, exportar/importar, imprimir A4.
+
+## Folha Projeto
+
+1. **Assuntos da semana** — os temas que vão centralizar a tua atenção.
+2. **Coleta de informação** num único momento (sugestão: segunda de manhã). Depois
+   da coleta, a lista fica fechada até à semana seguinte.
+3. Referências novas a meio da semana ficam **em espera** — só entram na próxima
+   coleta. É a blindagem contra consumir informação fora de hora.
+4. **Cada semana é uma folha nova** — a semana anterior fica no histórico
+   automaticamente ao abrires a app numa segunda-feira nova.
 
 ## Correr localmente
 

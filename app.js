@@ -6,6 +6,10 @@
   const K_FOLHA = "fn.folha";
   const K_CONFIG = "fn.config";
   const K_LANG = "fn.lang";
+  const K_TAB = "fn.tab";
+  const K_PROJETO = "fn.projeto";
+  const K_ARCHIVE = "fn.projeto.archive";
+  const K_PENDENTES = "fn.pendentes";
 
   const $ = (s, r = document) => r.querySelector(s);
   const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -18,6 +22,10 @@
   let config = load(K_CONFIG) || { reviewDay: 22 };
   let folha = load(K_FOLHA); // null até ser traçada
   let emergencyOpen = false;  // dura só a sessão
+  let projeto = load(K_PROJETO); // semana corrente, null se nunca usada
+  let pendentes = load(K_PENDENTES) || []; // referências à espera da próxima coleta
+  let archive = load(K_ARCHIVE) || []; // semanas passadas (até 12)
+  let activeTab = localStorage.getItem(K_TAB) === "projeto" ? "projeto" : "norte";
 
   function load(k) { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } }
   function save(k, v) { localStorage.setItem(k, JSON.stringify(v)); }
@@ -75,6 +83,7 @@
     populateUnitSelects();
     refreshSetupHorizon();
     if (folha) render();
+    if (projeto) renderProjeto();
   }
 
   // ---- render ----
@@ -243,7 +252,7 @@
   }
 
   function exportCopy() {
-    const blob = new Blob([JSON.stringify({ _app: "folha-norte", v: 1, config, folha }, null, 2)], { type: "application/json" });
+    const blob = new Blob([JSON.stringify({ _app: "folha-norte", v: 2, config, folha, projeto, pendentes, archive }, null, 2)], { type: "application/json" });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
     a.download = `folha-norte-${new Date().toISOString().slice(0, 10)}.json`;
@@ -259,8 +268,14 @@
         if (data._app !== "folha-norte" || !data.folha || !data.folha.createdAt) throw 0;
         config = data.config || { reviewDay: 22 };
         folha = data.folha;
+        projeto = data.projeto || null;
+        pendentes = data.pendentes || [];
+        archive = data.archive || [];
         save(K_CONFIG, config); save(K_FOLHA, folha);
+        save(K_PENDENTES, pendentes); save(K_ARCHIVE, archive);
+        if (projeto) save(K_PROJETO, projeto); else localStorage.removeItem(K_PROJETO);
         render();
+        if (activeTab === "projeto") renderProjeto();
         flashSave(t("importOk"));
       } catch { alert(t("importBad")); }
     };
@@ -274,6 +289,221 @@
     $("#view-folha").hidden = true;
     $("#view-empty").hidden = false;
     $("#setup-review-day").value = 22;
+  }
+
+  // ---- Folha Projeto (semanal) ----
+  function mondayOf(d) {
+    const x = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    const day = x.getDay(); // 0 dom .. 6 sáb
+    x.setDate(x.getDate() + (day === 0 ? -6 : 1 - day));
+    return x;
+  }
+  function weekKeyOf(d) { return mondayOf(d).toISOString().slice(0, 10); }
+  function weekEndOf(mondayISO) { const d = new Date(mondayISO); d.setDate(d.getDate() + 6); return d.toISOString(); }
+
+  function ensureCurrentWeek() {
+    const wk = weekKeyOf(new Date());
+    if (projeto && projeto.weekStart === wk) return;
+    if (projeto) {
+      archive.unshift(projeto);
+      archive = archive.slice(0, 12);
+      save(K_ARCHIVE, archive);
+    }
+    projeto = {
+      weekStart: wk,
+      createdAt: new Date().toISOString(),
+      assuntos: [],
+      collected: false,
+      collectedAt: null,
+      informacoes: [],
+      history: [{ at: new Date().toISOString(), type: "created", text: "" }]
+    };
+    save(K_PROJETO, projeto);
+  }
+
+  function addProjetoHistory(type, text) {
+    projeto.history = projeto.history || [];
+    projeto.history.push({ at: new Date().toISOString(), type, text: text || "" });
+  }
+
+  function renderProjeto() {
+    ensureCurrentWeek();
+    $("#projeto-kicker").textContent = t("projKicker")
+      .replace("{start}", fmtDate(projeto.weekStart))
+      .replace("{end}", fmtDate(weekEndOf(projeto.weekStart)));
+    renderTopics();
+    renderInfo();
+    renderQueue();
+    renderProjetoHistory();
+  }
+
+  function renderTopics() {
+    const ul = $("#topics-list");
+    ul.innerHTML = "";
+    (projeto.assuntos || []).forEach(a => {
+      const li = document.createElement("li");
+      li.className = "need" + (a.done ? " need-done" : "");
+      li.innerHTML = `
+        <label class="need-check">
+          <input type="checkbox" ${a.done ? "checked" : ""} />
+          <span class="need-desc"></span>
+        </label>
+        <button type="button" class="need-remove" aria-label="${t("projTopicRemove")}">×</button>`;
+      li.querySelector(".need-desc").textContent = a.desc;
+      li.querySelector("input").addEventListener("change", e => { a.done = e.target.checked; save(K_PROJETO, projeto); renderTopics(); });
+      li.querySelector(".need-remove").addEventListener("click", () => {
+        projeto.assuntos = projeto.assuntos.filter(x => x.id !== a.id); save(K_PROJETO, projeto); renderTopics();
+      });
+      ul.appendChild(li);
+    });
+  }
+
+  function addTopic() {
+    const desc = $("#topic-desc").value.trim();
+    if (!desc) return;
+    projeto.assuntos = projeto.assuntos || [];
+    projeto.assuntos.push({ id: uid(), desc, done: false });
+    $("#topic-desc").value = "";
+    save(K_PROJETO, projeto);
+    renderTopics();
+    $("#topic-desc").focus();
+  }
+
+  function renderInfo() {
+    const banner = $("#collect-banner");
+    const btn = $("#btn-collect");
+    banner.className = "banner " + (projeto.collected ? "banner-closed" : "banner-open");
+    banner.textContent = projeto.collected
+      ? t("projInfoBodyDone").replace("{date}", fmtDate(projeto.collectedAt))
+      : t("projInfoBodyPending");
+    btn.hidden = !!projeto.collected;
+
+    const ul = $("#info-list");
+    ul.innerHTML = "";
+    if (!projeto.informacoes || !projeto.informacoes.length) {
+      const li = document.createElement("li");
+      li.className = "need-empty prose";
+      li.textContent = t("projInfoEmpty");
+      ul.appendChild(li);
+      return;
+    }
+    projeto.informacoes.forEach(info => {
+      const li = document.createElement("li");
+      li.className = "need" + (info.consumida ? " need-done" : "");
+      li.innerHTML = `
+        <label class="need-check">
+          <input type="checkbox" ${info.consumida ? "checked" : ""} />
+          <span class="need-desc"></span>
+        </label>
+        <button type="button" class="need-remove" aria-label="${t("removeNeed")}">×</button>`;
+      li.querySelector(".need-desc").textContent = info.desc;
+      li.querySelector("input").addEventListener("change", e => { info.consumida = e.target.checked; save(K_PROJETO, projeto); renderInfo(); });
+      li.querySelector(".need-remove").addEventListener("click", () => {
+        projeto.informacoes = projeto.informacoes.filter(x => x.id !== info.id); save(K_PROJETO, projeto); renderInfo();
+      });
+      ul.appendChild(li);
+    });
+  }
+
+  function openCollectDialog() {
+    $("#collect-notes").value = "";
+    const box = $("#dlg-collect-pending");
+    box.innerHTML = "";
+    if (pendentes.length) {
+      const label = document.createElement("p");
+      label.className = "hint"; label.textContent = t("dlgCollectPendingLabel");
+      box.appendChild(label);
+      const ul = document.createElement("ul");
+      ul.className = "needs";
+      pendentes.forEach(p => {
+        const li = document.createElement("li");
+        li.className = "need";
+        li.innerHTML = `<label class="need-check"><input type="checkbox" checked data-pid="${p.id}" /><span class="need-desc"></span></label>`;
+        li.querySelector(".need-desc").textContent = p.desc;
+        ul.appendChild(li);
+      });
+      box.appendChild(ul);
+    }
+    $("#dlg-collect").showModal();
+  }
+
+  function onCollectConfirm() {
+    const lines = $("#collect-notes").value.split("\n").map(s => s.trim()).filter(Boolean);
+    const checked = new Set($$("#dlg-collect-pending input[data-pid]:checked").map(el => el.dataset.pid));
+    const fromPending = pendentes.filter(p => checked.has(p.id));
+
+    projeto.informacoes = projeto.informacoes || [];
+    lines.forEach(desc => projeto.informacoes.push({ id: uid(), desc, consumida: false }));
+    fromPending.forEach(p => projeto.informacoes.push({ id: uid(), desc: p.desc, consumida: false }));
+
+    pendentes = pendentes.filter(p => !checked.has(p.id));
+    save(K_PENDENTES, pendentes);
+
+    projeto.collected = true;
+    projeto.collectedAt = new Date().toISOString();
+    addProjetoHistory("collected");
+    save(K_PROJETO, projeto);
+    renderProjeto();
+  }
+
+  function renderQueue() {
+    const ul = $("#queue-list");
+    ul.innerHTML = "";
+    if (!pendentes.length) {
+      const li = document.createElement("li");
+      li.className = "need-empty prose";
+      li.textContent = t("projQueueEmpty");
+      ul.appendChild(li);
+      return;
+    }
+    pendentes.forEach(p => {
+      const li = document.createElement("li");
+      li.className = "need";
+      li.innerHTML = `<span class="need-desc"></span><button type="button" class="need-remove" aria-label="${t("removeNeed")}">×</button>`;
+      li.querySelector(".need-desc").textContent = p.desc;
+      li.querySelector(".need-remove").addEventListener("click", () => {
+        pendentes = pendentes.filter(x => x.id !== p.id); save(K_PENDENTES, pendentes); renderQueue();
+      });
+      ul.appendChild(li);
+    });
+  }
+
+  function addQueueItem() {
+    const desc = $("#queue-desc").value.trim();
+    if (!desc) return;
+    pendentes.push({ id: uid(), desc, addedAt: new Date().toISOString() });
+    save(K_PENDENTES, pendentes);
+    $("#queue-desc").value = "";
+    renderQueue();
+    $("#queue-desc").focus();
+  }
+
+  function renderProjetoHistory() {
+    const ol = $("#projeto-history-list");
+    ol.innerHTML = "";
+    const labels = { created: "projHistCreated", collected: "projHistCollected" };
+    [...(projeto.history || [])].reverse().forEach(h => {
+      const li = document.createElement("li");
+      li.className = "hist hist-" + h.type;
+      const meta = document.createElement("p");
+      meta.className = "hist-meta mono";
+      meta.textContent = `${fmtDate(h.at)} · ${t(labels[h.type] || h.type)}`;
+      li.appendChild(meta);
+      if (h.text) { const p = document.createElement("p"); p.className = "hist-text"; p.textContent = h.text; li.appendChild(p); }
+      ol.appendChild(li);
+    });
+  }
+
+  function switchTab(name) {
+    activeTab = name;
+    localStorage.setItem(K_TAB, name);
+    $("#pane-norte").hidden = name !== "norte";
+    $("#pane-projeto").hidden = name !== "projeto";
+    $("#tab-norte").classList.toggle("is-active", name === "norte");
+    $("#tab-projeto").classList.toggle("is-active", name === "projeto");
+    $("#tab-norte").setAttribute("aria-selected", String(name === "norte"));
+    $("#tab-projeto").setAttribute("aria-selected", String(name === "projeto"));
+    if (name === "projeto") renderProjeto();
   }
 
   // ---- compass ----
@@ -328,6 +558,18 @@
     $("#btn-print").addEventListener("click", () => window.print());
     $("#btn-reset").addEventListener("click", resetAll);
 
+    $("#tab-norte").addEventListener("click", () => switchTab("norte"));
+    $("#tab-projeto").addEventListener("click", () => switchTab("projeto"));
+    $("#btn-add-topic").addEventListener("click", addTopic);
+    $("#topic-desc").addEventListener("keydown", e => { if (e.key === "Enter") addTopic(); });
+    $("#btn-collect").addEventListener("click", openCollectDialog);
+    $("#btn-add-queue").addEventListener("click", addQueueItem);
+    $("#queue-desc").addEventListener("keydown", e => { if (e.key === "Enter") addQueueItem(); });
+    $("#btn-print-projeto").addEventListener("click", () => window.print());
+    $("#dlg-collect").addEventListener("close", () => {
+      if ($("#dlg-collect").returnValue === "ok") onCollectConfirm();
+    });
+
     $("#dlg-review").addEventListener("close", e => {
       if ($("#dlg-review").returnValue === "ok") doSave($("#review-notes").value.trim());
     });
@@ -345,6 +587,7 @@
     else { $("#view-empty").hidden = false; }
 
     applyI18n();
+    switchTab(activeTab);
   }
 
   init();

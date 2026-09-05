@@ -1,17 +1,24 @@
 # Folha Norte — instruções para o Claude
 
-App estática (HTML/CSS/JS, sem build, sem framework, sem servidor) que implementa o
-método "Folha Norte": planeamento pessoal a 1 ano com revisão mensal num dia fixo.
+App estática (HTML/CSS/JS, sem build, sem framework, sem servidor) com **duas
+folhas** do mesmo método de planeamento, cada uma com o seu próprio ciclo de
+blindagem:
+
+- **Folha Norte** — direção a longo prazo (horizonte configurável), revisão num
+  dia fixo do mês.
+- **Folha Projeto** — foco da semana corrente, com um único momento de coleta de
+  informação por semana.
+
 Publicável no GitHub Pages. Dados só no dispositivo (`localStorage`).
 
 ## Ficheiros
 
 | Ficheiro | Papel |
 |---|---|
-| `index.html` | Estrutura. Dois estados: `#view-empty` (sem folha) e `#view-folha`. |
-| `app.js` | Toda a lógica. IIFE, `localStorage`, blindagem, histórico, export/import. |
-| `i18n.js` | `window.I18N.{pt,en}`. Acrescentar língua = nova chave de topo completa. |
-| `styles.css` | Design "instrumento de navegação": banda com bússola + folha A4. |
+| `index.html` | Separadores `#tab-norte` / `#tab-projeto` sobre `#pane-norte` / `#pane-projeto`. Norte tem dois estados: `#view-empty` (sem folha) e `#view-folha`. Projeto tem sempre `#view-projeto` (a semana é criada automaticamente). |
+| `app.js` | Toda a lógica. IIFE, `localStorage`, blindagem das duas folhas, histórico, export/import. |
+| `i18n.js` | `window.I18N.{pt,en}`. Acrescentar língua = nova chave de topo completa (verificar sempre simetria pt/en). |
+| `styles.css` | Design "instrumento de navegação": banda com bússola + separadores + folha A4. |
 | `sw.js` / `manifest.json` | PWA. App shell offline. |
 | `icons/generate.html` | Gera os PNG dos ícones (correr uma vez no browser). |
 
@@ -23,21 +30,42 @@ Publicável no GitHub Pages. Dados só no dispositivo (`localStorage`).
     sem `horizon` assumem `{ n: 1, unit: "year" }`.
 - `fn.config` — `{ reviewDay }` (1–28)
 - `fn.lang` — `"pt"` | `"en"`
+- `fn.tab` — `"norte"` | `"projeto"` (último separador aberto)
+- `fn.projeto` — semana corrente: `{ weekStart, createdAt, assuntos[], collected, collectedAt, informacoes[], history[] }`
+  - `weekStart` — segunda-feira da semana (`YYYY-MM-DD`), ver `mondayOf()`/`weekKeyOf()`.
+  - Ao entrar numa nova semana, `ensureCurrentWeek()` arquiva a semana anterior em
+    `fn.projeto.archive` (máx. 12) e cria uma folha nova vazia.
+- `fn.pendentes` — fila de referências fora do momento de coleta: `{ id, desc, addedAt }[]`.
+  Persiste entre semanas até serem processadas na próxima coleta.
 
 `needs[]` = `{ id, type: "informacao"|"conteudo"|"conhecimento", desc, done }`
-`history[]` = `{ at, type: "created"|"review"|"reflection"|"emergency", text }`
+`history[]` (Norte) = `{ at, type: "created"|"review"|"reflection"|"emergency", text }`
+`assuntos[]` (Projeto) = `{ id, desc, done }`
+`informacoes[]` (Projeto) = `{ id, desc, consumida }`
+`history[]` (Projeto) = `{ at, type: "created"|"collected", text }`
 
 ## Blindagem — não enfraquecer sem o Nando confirmar
 
-É o núcleo do método, não um detalhe de UI:
+Núcleo do método em ambas as folhas, não um detalhe de UI.
+
+**Folha Norte:**
 - Fora do `reviewDay` os campos do plano ficam `disabled` (ver `renderLock()`).
 - No `reviewDay` a folha abre e guardar exige uma nota de revisão (`#dlg-review`).
 - Sempre disponível: registar reflexão (append-only, não altera o plano).
 - Desbloqueio de emergência: exige justificação (≥40 caz.), regista `emergency` no
   histórico, dura só a sessão, fecha ao guardar.
 
-Não adicionar "editar sempre", nem remover o diálogo de revisão, nem alargar a
-janela de edição para além do próprio dia.
+**Folha Projeto:**
+- A coleta de informação (`#btn-collect` → `#dlg-collect`) só pode acontecer **uma
+  vez por semana** — depois de `projeto.collected = true` o botão esconde-se e o
+  banner passa a indicar que só a próxima coleta aceita novas referências.
+- Referências que surgem fora da coleta vão sempre para `fn.pendentes` (nunca
+  direto para `informacoes`) — só entram na semana seguinte, na próxima coleta.
+- `assuntos[]` (temas da semana) não têm blindagem — o método só a exige para a
+  coleta de informação, não para a definição dos temas.
+
+Não adicionar "editar sempre", nem remover os diálogos de revisão/coleta, nem
+alargar as janelas de edição além do que o método define.
 
 ## Segurança
 

@@ -47,10 +47,15 @@
       </label>
     </div>
   </div>
+  <nav class="tabs no-print" role="tablist">
+    <button type="button" id="tab-norte" class="tab is-active" role="tab" aria-selected="true" data-i18n="tabNorte">Folha Norte</button>
+    <button type="button" id="tab-projeto" class="tab" role="tab" aria-selected="false" data-i18n="tabProjeto">Folha Projeto</button>
+  </nav>
 </header>
 
 <main id="folha">
 
+<div id="pane-norte">
   <!-- ESTADO: sem folha ainda -->
   <section id="view-empty" class="sheet" hidden>
     <p class="sheet-kicker" data-i18n="emptyKicker">Nada traçado ainda</p>
@@ -172,7 +177,72 @@
       </div>
     </div>
   </section>
+</div>
+
+<div id="pane-projeto" hidden>
+  <section id="view-projeto" class="sheet">
+
+    <p class="sheet-kicker" id="projeto-kicker"></p>
+    <p class="hint" data-i18n="projSuggestion">Sugestão: faz a coleta à segunda de manhã.</p>
+
+    <!-- Assuntos -->
+    <section class="block block-first">
+      <h2 data-i18n="projTopicsTitle">Assuntos da semana</h2>
+      <p class="prose" data-i18n="projTopicsBody">Os temas que vão centralizar a tua atenção nos próximos dias.</p>
+      <ul id="topics-list" class="needs"></ul>
+      <div class="needs-add">
+        <input type="text" id="topic-desc" data-i18n-ph="projTopicDescPh" placeholder="Em que te vais focar?" />
+        <button type="button" id="btn-add-topic" class="btn" data-i18n="addNeedBtn">Acrescentar</button>
+      </div>
+    </section>
+
+    <!-- Coleta de informação -->
+    <section class="block">
+      <h2 data-i18n="projInfoTitle">Informações da semana</h2>
+      <div id="collect-banner" class="banner"></div>
+      <ul id="info-list" class="needs"></ul>
+      <button type="button" id="btn-collect" class="btn btn-primary" data-i18n="projCollectBtn">Fazer a coleta agora</button>
+    </section>
+
+    <!-- Fila de espera -->
+    <section class="block">
+      <h2 data-i18n="projQueueTitle">Guardar para a próxima coleta</h2>
+      <p class="prose" data-i18n="projQueueBody">Surgiu uma referência nova a meio da semana? Fica aqui em espera — só entra na próxima coleta.</p>
+      <ul id="queue-list" class="needs"></ul>
+      <div class="needs-add">
+        <input type="text" id="queue-desc" data-i18n-ph="projQueuePh" placeholder="Referência para mais tarde…" />
+        <button type="button" id="btn-add-queue" class="btn" data-i18n="projQueueAddBtn">Guardar</button>
+      </div>
+    </section>
+
+    <!-- Histórico -->
+    <section class="block">
+      <h2 data-i18n="historyTitle">Histórico</h2>
+      <ol id="projeto-history-list" class="history"></ol>
+    </section>
+
+    <div class="sheet-footer no-print">
+      <div class="row">
+        <button type="button" id="btn-print-projeto" class="btn" data-i18n="printBtn">Imprimir folha A4</button>
+      </div>
+    </div>
+  </section>
+</div>
 </main>
+
+<!-- Modal: coleta -->
+<dialog id="dlg-collect">
+  <form method="dialog">
+    <h2 data-i18n="dlgCollectTitle">Coleta da semana</h2>
+    <p class="prose" data-i18n="dlgCollectBody">Uma linha por referência. É a única vez esta semana que juntas informação de raiz — inclui também o que guardaste da semana passada, se ainda for relevante.</p>
+    <div id="dlg-collect-pending"></div>
+    <textarea id="collect-notes" data-i18n-ph="dlgCollectPh" placeholder="Uma referência por linha…"></textarea>
+    <div class="row">
+      <button value="cancel" class="btn btn-ghost" data-i18n="cancelBtn">Cancelar</button>
+      <button value="ok" class="btn btn-primary" data-i18n="dlgCollectOk">Registar coleta</button>
+    </div>
+  </form>
+</dialog>
 
 <!-- Modal: revisão -->
 <dialog id="dlg-review">
